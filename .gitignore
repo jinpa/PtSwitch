@@ -11,6 +11,9 @@ dist/
 output/
 out/
 
+# Debug output from scraper
+debug-*.html
+
 # Playwright
 playwright-report/
 test-results/

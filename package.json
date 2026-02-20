@@ -1,0 +1,13 @@
+{
+  "name": "ptswitch",
+  "version": "1.0.0",
+  "description": "Scrape MedBridge Go workout programs and generate a static site",
+  "type": "module",
+  "scripts": {
+    "scrape": "node src/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "playwright": "^1.49.0"
+  }
+}
