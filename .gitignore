@@ -1,0 +1,23 @@
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Scraper / build output (optional: remove if you want to commit generated site)
+dist/
+output/
+out/
+
+# Playwright
+playwright-report/
+test-results/
+.playwright/
+
+# OS / editor
+.DS_Store
+*.log
+.idea/
+.vscode/

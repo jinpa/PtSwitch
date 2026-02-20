@@ -1,0 +1,36 @@
+---
+description: Persistent project context for PtSwitch — MedBridge Go workout scraper and static site generator.
+globs: 
+alwaysApply: true
+---
+
+# PtSwitch — Project context
+
+**Full product spec:** [docs/PRD.md](docs/PRD.md)
+
+## What this project does
+
+- For each workout: goes **first** to the **access-token URL** (`https://medbridgego.com/access_token/$TOKEN`); does not authenticate at medbridgego.com beforehand. When that page prompts for login, authenticates with username/password, then scrapes.
+- **Scrapes** one program per token (list of exercises: names, descriptions, sets/reps; no videos in MVP).
+- **Generates a static site** with a top nav to switch between programs; run via `npm run scrape`.
+
+## Tech stack
+
+- **Runtime:** Node.js
+- **Scraping:** Playwright (browser automation)
+- **Config:** `.env` (see `.env.example`); `.env` is gitignored
+- **Output:** Static HTML/CSS/JS only (e.g. `dist/` or `output/`), no server required to view
+
+## Conventions
+
+- **Env format:** `MEDBRIDGE_USERNAME`, `MEDBRIDGE_PASSWORD`; token/name pairs as `TOKEN_1`/`NAME_1`, `TOKEN_2`/`NAME_2`, etc.
+- **Multi-token required:** MVP must support ≥2 tokens and verify that workouts differ per token.
+- **Failure handling:** Run all tokens; use successful ones; clearly mark failed tokens (e.g. "Program name – failed to load") in the generated site.
+
+## Constraints (MVP)
+
+- No videos or image media in scraped output.
+- No UI for token management — edit `.env` manually.
+- Trigger: `npm run scrape` only (no regenerate button or scheduler in MVP).
+
+When changing behavior or scope, align with [docs/PRD.md](docs/PRD.md) and update the PRD if requirements change.
