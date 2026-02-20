@@ -30,7 +30,15 @@ export async function scrapeProgram({ token, name }, { username, password }) {
     // Wait a bit for any redirect or SPA render
     await page.waitForTimeout(2000);
 
-    // If we see "Sign in" (existing account), click it to get the email/password form
+    // 1. FIRST: On token page, click "Verify access code" if present (binds this token to session)
+    const verifyBtn = page.locator('input[type="submit"][value*="Verify"], input[value*="Verify Access Code"], button:has-text("Verify")').first();
+    if (await verifyBtn.isVisible().catch(() => false)) {
+      await verifyBtn.click();
+      await page.waitForLoadState('networkidle').catch(() => {});
+      await page.waitForTimeout(3000);
+    }
+
+    // 2. THEN: If we see "Sign in" (existing account), click it to get the email/password form
     const signInLink = page.locator('a[href*="sign_in"], a:has-text("Sign in")').first();
     if (await signInLink.isVisible().catch(() => false)) {
       await signInLink.click();
@@ -38,7 +46,7 @@ export async function scrapeProgram({ token, name }, { username, password }) {
       await page.waitForTimeout(2000);
     }
 
-    // Check for login form (common patterns: email + password)
+    // 3. Check for login form (common patterns: email + password)
     const emailInput = page.locator('input[type="email"], input[name="email"], input[name="username"], input[id*="email"], input[id*="username"]').first();
     const passwordInput = page.locator('input[type="password"], input[name="password"]').first();
 
@@ -57,7 +65,7 @@ export async function scrapeProgram({ token, name }, { username, password }) {
       await page.goto(url, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('networkidle').catch(() => {});
       await page.waitForTimeout(2000);
-      const verifyBtn = page.locator('input[type="submit"][value*="Verify"], input[value*="Verify Access Code"]').first();
+      // Verify again if we're back on the token page (e.g. after login)
       if (await verifyBtn.isVisible().catch(() => false)) {
         await verifyBtn.click();
         await page.waitForLoadState('networkidle').catch(() => {});
