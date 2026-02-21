@@ -109,12 +109,28 @@ export async function scrapeProgram({ token, name }, { username, password }) {
         !/session about to expire|stay signed in|sign out|you will be signed out/i.test(e.name) &&
         !/session about to expire|stay signed in|sign out/i.test(e.description || '')
     );
+    exercises = dedupeExercises(exercises);
     return { name, exercises };
   } catch (err) {
     return { name, error: err.message || String(err) };
   } finally {
     await browser.close();
   }
+}
+
+function normalizeExerciseKey(name) {
+  if (!name || typeof name !== 'string') return '';
+  return name.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function dedupeExercises(exercises) {
+  const seen = new Set();
+  return exercises.filter((ex) => {
+    const key = normalizeExerciseKey(ex.name);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 /**

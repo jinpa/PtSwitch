@@ -18,7 +18,7 @@ export async function buildSite(programs) {
   const programData = programs.map((p) => ({
     name: p.name,
     failed: !!p.error,
-    exercises: p.exercises || [],
+    exercises: dedupeExercises(p.exercises || []),
     errorMessage: p.error || null,
   }));
 
@@ -41,10 +41,15 @@ export async function buildSite(programs) {
     .program.active { display: block; }
     .program h1 { margin: 0 0 1rem; font-size: 1.5rem; color: #2d3748; }
     .program.failed p.error { background: #fed7d7; color: #c53030; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
-    .exercise { background: #fff; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-    .exercise h3 { margin: 0 0 0.5rem; font-size: 1.1rem; color: #2d3748; }
-    .exercise .description { color: #4a5568; font-size: 0.95rem; line-height: 1.5; margin-bottom: 0.5rem; white-space: pre-wrap; }
-    .exercise .sets-reps { font-size: 0.9rem; color: #718096; }
+    .exercise-list { counter-reset: exercise-num; list-style: none; padding: 0; margin: 0; }
+    .exercise { background: #fff; border-radius: 10px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 4px rgba(0,0,0,0.06); counter-increment: exercise-num; border-left: 4px solid #4299e1; }
+    .exercise h3 { margin: 0 0 0.5rem; font-size: 1.15rem; color: #2d3748; display: flex; align-items: baseline; gap: 0.5rem; }
+    .exercise h3::before { content: counter(exercise-num) "."; font-weight: 700; color: #4299e1; min-width: 1.75em; }
+    .exercise .description { color: #4a5568; font-size: 0.95rem; line-height: 1.55; margin-bottom: 0.5rem; }
+    .exercise .description.steps { margin-left: 0; padding-left: 0; }
+    .exercise .steps { margin: 0.5rem 0 0; padding-left: 1.25rem; }
+    .exercise .steps li { margin-bottom: 0.35rem; }
+    .exercise .sets-reps { display: inline-block; font-size: 0.85rem; font-weight: 600; color: #2b6cb0; background: #ebf8ff; padding: 0.25rem 0.6rem; border-radius: 6px; margin-top: 0.5rem; }
     .empty { color: #718096; font-style: italic; }
   </style>
 </head>
@@ -58,12 +63,15 @@ export async function buildSite(programs) {
       <h1>${escapeHtml(prog.name)}</h1>
       ${prog.failed ? `<p class="error">This program could not be loaded: ${escapeHtml(prog.errorMessage || 'Unknown error')}</p>` : ''}
       ${!prog.failed && (!prog.exercises || prog.exercises.length === 0) ? '<p class="empty">No exercises found for this program.</p>' : ''}
-      ${!prog.failed && prog.exercises && prog.exercises.length ? prog.exercises.map((ex) => `
-      <article class="exercise">
+      ${!prog.failed && prog.exercises && prog.exercises.length ? `
+      <ol class="exercise-list" aria-label="Exercises">
+      ${prog.exercises.map((ex) => `
+      <li class="exercise">
         <h3>${escapeHtml(ex.name)}</h3>
-        ${ex.description ? `<div class="description">${escapeHtml(ex.description)}</div>` : ''}
-        ${ex.setsReps ? `<div class="sets-reps">${escapeHtml(ex.setsReps)}</div>` : ''}
-      </article>`).join('') : ''}
+        ${ex.description ? `<div class="description">${formatDescription(ex.description)}</div>` : ''}
+        ${ex.setsReps ? `<span class="sets-reps">${escapeHtml(ex.setsReps)}</span>` : ''}
+      </li>`).join('')}
+      </ol>` : ''}
     </section>`).join('')}
   </main>
   <script>
@@ -87,6 +95,33 @@ export async function buildSite(programs) {
   const outPath = join(OUT_DIR, 'index.html');
   await writeFile(outPath, html, 'utf8');
   return outPath;
+}
+
+function normalizeExerciseKey(name) {
+  if (!name || typeof name !== 'string') return '';
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
+}
+
+function dedupeExercises(exercises) {
+  const seen = new Set();
+  return exercises.filter((ex) => {
+    const key = normalizeExerciseKey(ex.name);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function formatDescription(description) {
+  if (!description || typeof description !== 'string') return '';
+  const trimmed = description.trim();
+  if (!trimmed) return '';
+  const lines = trimmed.split(/\n+/).map((l) => l.trim()).filter(Boolean);
+  if (lines.length <= 1) return escapeHtml(trimmed);
+  return '<ul class="steps">' + lines.map((line) => `<li>${escapeHtml(line)}</li>`).join('') + '</ul>';
 }
 
 function escapeHtml(s) {

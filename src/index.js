@@ -1,4 +1,5 @@
 import { loadConfig } from './config.js';
+import { savePrograms } from './data.js';
 import { scrapeProgram } from './scraper.js';
 import { buildSite } from './site-builder.js';
 
@@ -18,6 +19,9 @@ async function main() {
       console.log(`  Got ${result.exercises?.length ?? 0} exercise(s)`);
     }
   }
+
+  const dataPath = await savePrograms(results);
+  console.log(`Saved scraped data to ${dataPath}`);
 
   console.log('Building static site...');
   const outPath = await buildSite(results);

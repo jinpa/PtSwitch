@@ -29,7 +29,16 @@ npm run scrape
 This will:
 
 - For each token: open `https://medbridgego.com/access_token/<TOKEN>`, sign in when prompted, then scrape that program’s exercises (names, descriptions, sets/reps).
-- Write a static site under `dist/` with a top nav (one item per program). Open `dist/index.html` in a browser.
+- Save the scraped data to `dist/programs.json`.
+- Build the static site under `dist/` (top nav, one item per program). Open `dist/index.html` in a browser.
+
+To **reformat the site without rescraping** (e.g. after editing `src/site-builder.js`), run:
+
+```bash
+npm run format
+```
+
+That reads `dist/programs.json` and regenerates `dist/index.html`. Run `npm run scrape` first if the JSON is missing.
 
 If a token fails (expired, network, or site change), the site is still built; failed programs are marked in the nav (e.g. “Program name – failed to load”).
 
