@@ -7,9 +7,9 @@
 node_modules/
 
 # Scraper / build output (optional: remove if you want to commit generated site)
-dist/
-output/
-out/
+# dist/
+# output/
+# out/
 
 # Debug output from scraper
 debug-*.html
